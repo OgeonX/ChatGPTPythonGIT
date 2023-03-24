@@ -44,47 +44,60 @@ while True:
         if user_input == "exit":
             break
 
-        # Call OpenAI API to generate a response
-        response = openai.Completion.create(
-            engine="davinci",
-            prompt=user_input,
-            max_tokens=2000,
-            temperature=0.5,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=["\n", " Human:", " AI:"],
-            n=1,
-        )
-        generated_text = response.choices[0].text.strip()
+        # Read the contents of all Python files in the repository, excluding the .git and __pycache__ folders
+        files = [f for f in os.listdir(local_repo_path) if f.endswith(".py") and f not in [".git", "__pycache__", ".vs"]]
+        file_contents = ""
+        for file_name in files:
+            file_path = os.path.join(local_repo_path, file_name)
+            try:
+                file_contents += read_file(file_path)
+            except Exception as e:
+                print(f"Error reading file {file_name}: {e}")
 
-        # Print the response
-        print(generated_text)
+            # Call OpenAI API to generate a response
+            response = openai.Completion.create(
+                engine="davinci",
+                prompt="Context: {}\n\nUser Input: {}".format(file_contents, user_input),
+                max_tokens=2000,
+                temperature=0.5,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=["\n", " Human:", " AI:"],
+                n=1,
+            )
+            generated_text = response.choices[0].text.strip()
 
-        # Add the generated response to a new file in the repository
-        file_name = "{}.txt".format(len(os.listdir(local_repo_path)) + 1)
-        file_path = os.path.join(local_repo_path, file_name)
-        with open(file_path, "w") as f:
-            f.write(generated_text)
+            # Print the response
+            print(generated_text)
 
-        # Determine the tag to use based on the file's status in the repository
-        if repo.is_dirty(untracked_files=True):
-            tag = "+"
-        elif repo.untracked_files:
-            tag = "-"
-        else:
-            tag = "*"
+            # Add the generated response to a new file in the repository
+            file_name = "{}.txt".format(len(os.listdir(local_repo_path)) + 1)
+            file_path = os.path.join(local_repo_path, file_name)
+            with open(file_path, "w") as f:
+                f.write(generated_text)
 
-        # Commit the changes to the repository with the appropriate tag
-        repo.git.add(".")
-        repo.index.commit("{} {}".format(tag, file_name))
+            # Determine the tag to use based on the file's status in the repository
+            if repo.is_dirty(untracked_files=True):
+                tag = "+"
+            elif repo.untracked_files:
+                tag = "-"
+            else:
+                tag = "*"
 
-        # Push the changes to the remote repository
-        p = subprocess.Popen(["git", "push"], cwd=local_repo_path)
-        p.wait()
+            # Commit the changes to the repository with the appropriate tag
+            repo.git.add(".")
+            repo.index.commit("{} {}".format(tag, file_name))
+
+            # Push the changes to the remote repository
+            p = subprocess.Popen(["git", "push"], cwd=local_repo_path)
+            p.wait()
 
     except openai.error.APIError as e:
         print("There was an error with the OpenAI API: {}".format(e))
 
     except Exception as e:
         print("There was an error: {}".format(e))
+    finally:
+    # Close the Tk window
+        root.destroy()
