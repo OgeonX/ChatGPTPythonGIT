@@ -1,5 +1,6 @@
 import os
 from git import Repo, InvalidGitRepositoryError
+import pickle
 
 # Set up Git repository URL and local path
 git_repo_url = "https://github.com/OgeonX/ChatGPTPythonGIT.git"
@@ -13,7 +14,7 @@ except InvalidGitRepositoryError:
 
 def add_file_to_repo(file_name, file_contents):
     # Add the generated response to a new file in the repository
-    file_path = os.path.join(local_repo_path, file_name)
+    ffile_path = os.path.join(local_repo_path, file_name)
     with open(file_path, "w") as f:
         f.write(file_contents)
 
@@ -23,3 +24,12 @@ def add_file_to_repo(file_name, file_contents):
 
     # Push the changes to the remote repository
     repo.git.push()
+
+# Define a function that takes arguments
+def main(file_name, file_contents):
+    add_file_to_repo(file_name, file_contents)
+
+# Call the function with arguments
+if __name__ == '__main__':
+    import sys
+    main(sys.argv[1], sys.argv[2])

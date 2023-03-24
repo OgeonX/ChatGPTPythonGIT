@@ -1,9 +1,14 @@
+import os
 import openai
 import tkinter as tk
 from tkinter import simpledialog
-import config
+import subprocess
+from git import Repo
+from git.exc import InvalidGitRepositoryError
+import sys
 
 # Load OpenAI API key from config file
+import config
 openai.api_key = config.OPENAI_API_KEY
 
 def read_file(file_path):
@@ -21,21 +26,19 @@ def generate_response(file_contents, user_input):
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
-        stop=["\n", " Human:", " AI:"],
         n=1,
     )
     generated_text = response.choices[0].text.strip()
 
     return generated_text
 
-def write_to_file(local_repo_path, generated_text):
+def write_to_file(local_repo_path, file_name, generated_text):
     # Add the generated response to a new file in the repository
-    file_name = "{}.txt".format(len(os.listdir(local_repo_path)) + 1)
     file_path = os.path.join(local_repo_path, file_name)
     with open(file_path, "w") as f:
         f.write(generated_text)
 
-def commit_to_git(local_repo_path, repo, file_name):
+def commit_to_git(local_repo_path, repo, file_name, message_queue):
     # Determine the tag to use based on the file's status in the repository
     if repo.is_dirty(untracked_files=True):
         tag = "+"
@@ -52,20 +55,10 @@ def commit_to_git(local_repo_path, repo, file_name):
     p = subprocess.Popen(["git", "push"], cwd=local_repo_path)
     p.wait()
 
-def chat_process(message_queue):
-    # Set up Git repository URL and local path
-    git_repo_url = "https://github.com/OgeonX/ChatGPTPythonGIT.git"
-    local_repo_path = "C:\\Users\\admin\\source\\repos\\ChatGPTPythonGIT" # Change this to the path of your local repo
+    # Send a message to the message queue
+    message_queue.put("Changes committed to Git repository")
 
-    # Clone the Git repository if it doesn't exist locally, otherwise use the existing one
-    try:
-        repo = Repo(local_repo_path)
-    except InvalidGitRepositoryError:
-        # Read Git credentials from environment variables
-        git_creds = os.environ.get("GIT_CREDENTIALS")
-        if git_creds:
-            # Clone the repository using Git credentials
-            git_password = git_creds.split(":")[1]
-            repo = Repo.clone_from(git_repo_url, local_repo_path, env={"GIT_ASKPASS": "git-gui--askpass"})
-            repo.git.credentials.store("https://github.com", git_creds)
-       
+if __name__ == "__main__":
+    # Set up Git repository URL and local path
+    git_repo_url = "https://github.com/username/repo.git"
+    local_repo_path = "C:\\Users\\admin\\source\\repos\\ChatGPTPythonGIT"

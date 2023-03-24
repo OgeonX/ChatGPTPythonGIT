@@ -2,15 +2,16 @@ import os
 import subprocess
 import multiprocessing
 
-def run_chat_process():
-    subprocess.call(["python", "chat.py"])
+def run_chat_process(message_queue):
+    subprocess.call(["python", "chat.py", str(message_queue._address)])
 
-def run_git_process():
-    subprocess.call(["python", "git.py"])
+def run_git_process(message_queue):
+    subprocess.call(["python", "git_utils.py", str(message_queue._address)])
 
 def main():
-    # Set up message queue
-    message_queue = multiprocessing.Queue()
+    # Set up shared message queue
+    manager = multiprocessing.Manager()
+    message_queue = manager.Queue()
 
     # Start chat process
     chat_process = multiprocessing.Process(target=run_chat_process, args=(message_queue,))

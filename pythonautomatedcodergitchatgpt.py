@@ -58,7 +58,7 @@ while True:
             response = openai.Completion.create(
                 engine="davinci",
                 prompt="Context: {}\n\nUser Input: {}".format(file_contents, user_input),
-                max_tokens=2000,
+                max_tokens=100,
                 temperature=0.5,
                 top_p=1,
                 frequency_penalty=0,
