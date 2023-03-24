@@ -1,0 +1,1 @@
+to get context of python file and write to file
