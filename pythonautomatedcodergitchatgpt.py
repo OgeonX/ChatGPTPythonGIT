@@ -54,13 +54,16 @@ while True:
             engine="davinci",
             prompt=user_input,
             max_tokens=2000,
+            temperature=0.5,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            stop=["\n", " Human:", " AI:"],
             n=1,
-            stop=None,
-            temperature=0.5
         )
+        generated_text = response.choices[0].text.strip()
 
         # Print the response
-        generated_text = response.choices[0].text.strip()
         print(generated_text)
 
         # Add the generated response to a new file in the repository
