@@ -1,13 +1,12 @@
-import openai
 import os
-from git import Git, Repo, InvalidGitRepositoryError
-import shutil
+import openai
+from git import Repo, InvalidGitRepositoryError
 import tkinter as tk
 from tkinter import simpledialog
 import subprocess
+import config
 
 # Load OpenAI API key from config file
-import config
 openai.api_key = config.OPENAI_API_KEY
 
 # Set up Git repository URL and local path
@@ -15,7 +14,9 @@ git_repo_url = "https://github.com/OgeonX/ChatGPTPythonGIT.git"
 local_repo_path = "C:\\Users\\admin\\source\\repos\\ChatGPTPythonGIT" # Change this to the path of your local repo
 
 # Clone the Git repository if it doesn't exist locally, otherwise use the existing one
-if not os.path.exists(local_repo_path):
+try:
+    repo = Repo(local_repo_path)
+except InvalidGitRepositoryError:
     # Read Git credentials from environment variables
     git_creds = os.environ.get("GIT_CREDENTIALS")
     if git_creds:
@@ -26,12 +27,6 @@ if not os.path.exists(local_repo_path):
     else:
         # Clone the repository without Git credentials
         repo = Repo.clone_from(git_repo_url, local_repo_path)
-else:
-    try:
-        repo = Repo(local_repo_path)
-    except InvalidGitRepositoryError:
-        print("The path specified is not a valid Git repository.")
-        exit()
 
 # Function to read a file's content from the repository
 def read_file(file_path):
@@ -40,15 +35,15 @@ def read_file(file_path):
     return content
 
 while True:
-    # Display a prompt for the user to enter a message
-    root = tk.Tk()
-    root.withdraw()
-    user_input = simpledialog.askstring(title="Chat with OpenAI", prompt="Enter your message (type 'exit' to quit):")
-
-    if user_input == "exit":
-        break
-
     try:
+        # Display a prompt for the user to enter a message
+        root = tk.Tk()
+        root.withdraw()
+        user_input = simpledialog.askstring(title="Chat with OpenAI", prompt="Enter your message (type 'exit' to quit):")
+
+        if user_input == "exit":
+            break
+
         # Call OpenAI API to generate a response
         response = openai.Completion.create(
             engine="davinci",
