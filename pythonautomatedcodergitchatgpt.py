@@ -4,16 +4,28 @@ from git import Git, Repo, InvalidGitRepositoryError
 import shutil
 import tkinter as tk
 from tkinter import simpledialog
+import subprocess
 
-# Set up OpenAI API key and Git repository
-openai.api_key = "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"
+# Load OpenAI API key from config file
+import config
+openai.api_key = config.OPENAI_API_KEY
+
+# Set up Git repository URL and local path
 git_repo_url = "https://github.com/OgeonX/ChatGPTPythonGIT.git"
 local_repo_path = "C:\\Users\\admin\\source\\repos\\ChatGPTPythonGIT" # Change this to the path of your local repo
-repo = None
 
 # Clone the Git repository if it doesn't exist locally, otherwise use the existing one
 if not os.path.exists(local_repo_path):
-    repo = Repo.clone_from(git_repo_url, local_repo_path)
+    # Read Git credentials from environment variables
+    git_creds = os.environ.get("GIT_CREDENTIALS")
+    if git_creds:
+        # Clone the repository using Git credentials
+        git_password = git_creds.split(":")[1]
+        repo = Repo.clone_from(git_repo_url, local_repo_path, env={"GIT_ASKPASS": "git-gui--askpass"})
+        repo.git.credentials.store("https://github.com", git_creds)
+    else:
+        # Clone the repository without Git credentials
+        repo = Repo.clone_from(git_repo_url, local_repo_path)
 else:
     try:
         repo = Repo(local_repo_path)
@@ -27,40 +39,54 @@ def read_file(file_path):
         content = f.read()
     return content
 
-# Display a prompt for the user to enter a message
-root = tk.Tk()
-root.withdraw()
-user_input = simpledialog.askstring(title="Chat with OpenAI", prompt="Enter your message:")
+while True:
+    # Display a prompt for the user to enter a message
+    root = tk.Tk()
+    root.withdraw()
+    user_input = simpledialog.askstring(title="Chat with OpenAI", prompt="Enter your message (type 'exit' to quit):")
 
-try:
-    # Call OpenAI API to generate a response
-    response = openai.Completion.create(
-        engine="davinci",
-        prompt=user_input,
-        max_tokens=60,
-        n=1,
-        stop=None,
-        temperature=0.5
-    )
-    
-    # Print the response
-    print(response.choices[0].text.strip())
+    if user_input == "exit":
+        break
 
-    # Add the generated response to a new file in the repository
-    file_name = "{}.txt".format(len(os.listdir(local_repo_path)) + 1)
-    file_path = os.path.join(local_repo_path, file_name)
-    with open(file_path, "w") as f:
-        f.write(response.choices[0].text.strip())
+    try:
+        # Call OpenAI API to generate a response
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt=user_input,
+            max_tokens=2000,
+            n=1,
+            stop=None,
+            temperature=0.5
+        )
 
-    # Commit the changes to the repository
-    repo.git.add(".")
-    repo.index.commit("Added new response from chatbot")
+        # Print the response
+        generated_text = response.choices[0].text.strip()
+        print(generated_text)
 
-    # Push the changes to the remote repository
-    repo.git.push()
+        # Add the generated response to a new file in the repository
+        file_name = "{}.txt".format(len(os.listdir(local_repo_path)) + 1)
+        file_path = os.path.join(local_repo_path, file_name)
+        with open(file_path, "w") as f:
+            f.write(generated_text)
 
-except openai.error.APIError as e:
-    print("There was an error with the OpenAI API: {}".format(e))
-    
-except Exception as e:
-    print("There was an error: {}".format(e))
+        # Determine the tag to use based on the file's status in the repository
+        if repo.is_dirty(untracked_files=True):
+            tag = "+"
+        elif repo.untracked_files:
+            tag = "-"
+        else:
+            tag = "*"
+
+        # Commit the changes to the repository with the appropriate tag
+        repo.git.add(".")
+        repo.index.commit("{} {}".format(tag, file_name))
+
+        # Push the changes to the remote repository
+        p = subprocess.Popen(["git", "push"], cwd=local_repo_path)
+        p.wait()
+
+    except openai.error.APIError as e:
+        print("There was an error with the OpenAI API: {}".format(e))
+
+    except Exception as e:
+        print("There was an error: {}".format(e))
