@@ -1,29 +1,19 @@
+
+
 import os
-import subprocess
-import multiprocessing
+import requests
+from dotenv import load_dotenv
+from testapikey import test_api_key
+from github_uploader import upload_to_github
 
-def run_chat_process(message_queue):
-    subprocess.call(["python", "chat.py", str(message_queue._address)])
+load_dotenv()
 
-def run_git_process(message_queue):
-    subprocess.call(["python", "git_utils.py", str(message_queue._address)])
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GITHUB_API_KEY = os.getenv("GITHUB_API_KEY")
+GITHUB_REPO_OWNER = os.getenv("GITHUB_REPO_OWNER")
+GITHUB_REPO_NAME = os.getenv("GITHUB_REPO_NAME")
 
-def main():
-    # Set up shared message queue
-    manager = multiprocessing.Manager()
-    message_queue = manager.Queue()
+def generate_prompt_with_code(api_key, code, suggestions):
+    endpoint_url = "https://api.openai.com/v1/engines/text-davinci-002/completions"
 
-    # Start chat process
-    chat_process = multiprocessing.Process(target=run_chat_process, args=(message_queue,))
-    chat_process.start()
-
-    # Start git process
-    git_process = multiprocessing.Process(target=run_git_process, args=(message_queue,))
-    git_process.start()
-
-    # Wait for processes to finish
-    chat_process.join()
-    git_process.join()
-
-if __name__ == "__main__":
-    main()
+    headers =
