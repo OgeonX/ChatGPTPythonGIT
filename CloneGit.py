@@ -1,3 +1,5 @@
+
+
 import os
 import shutil
 
@@ -7,7 +9,7 @@ def clone_git_repository(git_repo_url, tmp_dir):
         shutil.rmtree(tmp_dir)
 
     # Clone the GitHub repository to a temporary directory
-    os.system(f"git clone --depth 1 {git_repo_url} {tmp_dir}")
+    os.system(f"git clone --depth 1 --branch HEAD {git_repo_url} {tmp_dir}")
 
     # Return the temporary directory path
     return tmp_dir
