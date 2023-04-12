@@ -1,30 +1,8 @@
 
+1. Create a separate function to determine the endpoint URL based on the API key type. This will make it easier to maintain the code if different API endpoints need to be added in the future.
 
-import requests
+2. Move the code to make the GET request and check the response status code into a separate function. This will make it easier to test the code and improve readability.
 
-def test_api_key(api_key, api_key_type="OpenAI"):
-    # Set OpenAI API endpoint URL
-    if api_key_type == "OpenAI":
-        endpoint_url = "https://api.openai.com/v1/engines"
-    elif api_key_type == "GitHub":
-        endpoint_url = "https://api.github.com"
-    else:
-        print(f"Invalid API key type: {api_key_type}")
-        return False
+3. Move the code to set the GET request parameters into a separate function. This will make it easier to test the code and improve readability.
 
-    # Set GET request parameters
-    headers = {"Authorization": f"Bearer {api_key}"}
-
-    # Make GET request to API endpoint
-    try:
-        response = requests.get(endpoint_url, headers=headers)
-
-        # Check if request was successful
-        if response.status_code == 200:
-            return True
-        else:
-            print(f"{api_key_type} API key test failed with status code {response.status_code}: {response.text}")
-            return False
-    except requests.exceptions.RequestException as e:
-        print(f"{api_key_type} API key test failed with error: {e}")
-        return False
+4. Create a separate function to print error messages when the API key test fails. This will make it easier to maintain the code if different error messages need to be added in the future.
