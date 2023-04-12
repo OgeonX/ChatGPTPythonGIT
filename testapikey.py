@@ -1,7 +1,9 @@
+
+
 import requests
 
 def test_api_key(api_key, api_key_type="OpenAI"):
-    # Set OpenAI API endpoint URL
+    # Set API endpoint URL
     if api_key_type == "OpenAI":
         endpoint_url = "https://api.openai.com/v1/engines"
     elif api_key_type == "GitHub":
@@ -19,6 +21,7 @@ def test_api_key(api_key, api_key_type="OpenAI"):
 
         # Check if request was successful
         if response.status_code == 200:
+            print(f"{api_key_type} API key test was successful!")
             return True
         else:
             print(f"{api_key_type} API key test failed with status code {response.status_code}: {response.text}")
