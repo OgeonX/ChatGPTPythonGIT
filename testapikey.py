@@ -20,4 +20,11 @@ def test_api_key(api_key, api_key_type="OpenAI"):
         response = requests.get(endpoint_url, headers=headers)
 
         # Check if request was successful
-        if response.status_code ==
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"{api_key_type} API key test failed with status code {response.status_code}: {response.text}")
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"{api_key_type} API key test failed with error: {e}")
+        return False
