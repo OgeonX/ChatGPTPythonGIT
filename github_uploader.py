@@ -1,3 +1,6 @@
+ 
+
+```
 import requests
 import base64
 
@@ -32,8 +35,13 @@ def upload_to_github(github_api_key, repo_owner, repo_name, branch, path, conten
             print(f"File successfully uploaded to GitHub: {path}")
             return True
         else:
-            print(f"File upload to GitHub failed with status code {response.status_code}: {response.text}")
-            return False
+            print(f"File upload to GitHub failed with status code {response.status_code}: {response.text}\n")
+            raise Exception('File upload to GitHub failed')
     else:
-        print(f"File retrieval from GitHub failed with status code {response.status_code}: {response.text}")
-        return False
+        print(f"File retrieval from GitHub failed with status code {response.status_code}: {response.text}\n")
+        raise Exception('File retrieval from GitHub failed')
+    finally:
+        print('Closing the connection')
+        requests.close()
+
+```
