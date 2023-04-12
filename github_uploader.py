@@ -1,39 +1,9 @@
-import requests
-import base64
 
-def upload_to_github(github_api_key, repo_owner, repo_name, branch, path, content, commit_message):
-    headers = {
-        "Authorization": f"token {github_api_key}",
-        "Content-Type": "application/json",
-    }
-
-    # Get the file's current state
-    api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{path}"
-    response = requests.get(api_url, headers=headers, params={"ref": branch})
-
-    if response.status_code in [200, 404]:
-        sha = None
-        if response.status_code == 200:
-            sha = response.json()["sha"]
-
-        # Update or create the file
-        content_base64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-        data = {
-            "message": commit_message,
-            "content": content_base64,
-            "branch": branch,
-        }
-        if sha:
-            data["sha"] = sha
-
-        response = requests.put(api_url, headers=headers, json=data)
-
-        if response.status_code in [200, 201]:
-            print(f"File successfully uploaded to GitHub: {path}")
-            return True
-        else:
-            print(f"File upload to GitHub failed with status code {response.status_code}: {response.text}")
-            return False
-    else:
-        print(f"File retrieval from GitHub failed with status code {response.status_code}: {response.text}")
-        return False
+1. Separate out the "getting the file's current state" into a separate function, for example `get_github_file_state()`.
+2. Separate out the "updating or creating the file" into a separate function, for example `update_or_create_github_file()`.
+3. Create a "helper" function to encode the content of the file into base64.
+4. Move the URL parameters, such as `repo_owner`, `repo_name`, etc. into a separate object or dictionary, as to make the code more readable and maintainable.
+5. Create a logging function to log error messages and responses from the API calls.
+6. Add error handling to the code, such as try/catch blocks, to handle errors gracefully.
+7. Create a function to handle the response from the API, to make sure that the response code is valid and that the content is not empty.
+8. Add comments to the code to explain the purpose of each function, as well as any tricky parts.
