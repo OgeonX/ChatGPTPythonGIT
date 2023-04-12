@@ -1,28 +1,10 @@
-import requests
 
-def test_api_key(api_key, api_key_type="OpenAI"):
-    # Set OpenAI API endpoint URL
-    if api_key_type == "OpenAI":
-        endpoint_url = "https://api.openai.com/v1/engines"
-    elif api_key_type == "GitHub":
-        endpoint_url = "https://api.github.com"
-    else:
-        print(f"Invalid API key type: {api_key_type}")
-        return False
+1. Create a function to set the API endpoint URL based on the API key type. This will allow the code to be more modular and easily maintainable as new API key types can be added.
 
-    # Set GET request parameters
-    headers = {"Authorization": f"Bearer {api_key}"}
+2. Create a function to make the GET request to the API endpoint. This will allow the code to be more modular and easily maintainable as different types of requests can be made to the API.
 
-    # Make GET request to API endpoint
-    try:
-        response = requests.get(endpoint_url, headers=headers)
+3. Create a function to check the response status code and print an error message if the request was unsuccessful. This will allow the code to be more modular and easily maintainable.
 
-        # Check if request was successful
-        if response.status_code == 200:
-            return True
-        else:
-            print(f"{api_key_type} API key test failed with status code {response.status_code}: {response.text}")
-            return False
-    except requests.exceptions.RequestException as e:
-        print(f"{api_key_type} API key test failed with error: {e}")
-        return False
+4. Move the API key and API key type arguments from the test_api_key() function to the functions that make the API request and check the response. This will make the code more organized and readable.
+
+5. Extract constants such as the API URL endpoints and authorization header into variables. This will make the code more organized and readable.
